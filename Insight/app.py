@@ -59,8 +59,12 @@ def get_transcription_text(job_name):
             if status == 'COMPLETED':
                 transcript_uri = response['TranscriptionJob']['Transcript']['TranscriptFileUri']
                 parsed_url = urllib.parse.urlparse(transcript_uri)
-                bucket_name = parsed_url.netloc.split('.')[0]
-                object_key = parsed_url.path.lstrip('/')
+                bucket_name = os.environ['TRANSCRIBE_OUTPUT_BUCKET']
+                object_key = parsed_url.path.split('/')[-1]
+                
+                logger.info(f"Transcript URI: {transcript_uri}")
+                logger.info(f"Bucket Name: {bucket_name}")
+                logger.info(f"Object Key: {object_key}")
                 
                 # Retrieve the transcription file directly from S3
                 s3_object = s3_client.get_object(Bucket=bucket_name, Key=object_key)
