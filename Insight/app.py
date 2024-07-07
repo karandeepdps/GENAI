@@ -19,16 +19,11 @@ def download_youtube_audio(url):
     ydl_opts = {
         'format': 'bestaudio/best',
         'outtmpl': '/tmp/audio.%(ext)s',
-        'postprocessors': [{
-            'key': 'FFmpegExtractAudio',
-            'preferredcodec': 'mp3',
-            'preferredquality': '192',
-        }],
     }
     try:
         with YoutubeDL(ydl_opts) as ydl:
             ydl.download([url])
-        return '/tmp/audio.mp3'
+        return '/tmp/audio.webm'  # yt-dlp default audio format might be webm
     except Exception as e:
         logger.error(f"Error downloading audio: {e}")
         raise
@@ -46,7 +41,7 @@ def start_transcription_job(s3_uri, job_name):
         response = transcribe_client.start_transcription_job(
             TranscriptionJobName=job_name,
             Media={'MediaFileUri': s3_uri},
-            MediaFormat='mp3',
+            MediaFormat='webm',  # Change to webm if the file format is webm
             LanguageCode='en-US',
             OutputBucketName=os.environ['TRANSCRIBE_OUTPUT_BUCKET']
         )
@@ -88,7 +83,7 @@ def lambda_handler(event, context):
     audio_file_path = download_youtube_audio(youtube_url)
     
     # Upload the audio file to S3
-    s3_uri = upload_to_s3(audio_file_path, os.environ['AUDIO_BUCKET'], 'customer_interview.mp3')
+    s3_uri = upload_to_s3(audio_file_path, os.environ['AUDIO_BUCKET'], 'customer_interview.webm')
     
     # Start transcription job
     job_name = 'transcription_job_' + str(int(time.time()))
