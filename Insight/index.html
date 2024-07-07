@@ -50,6 +50,10 @@
     <h1>Transcription and Insights</h1>
     <label for="youtube-url">YouTube URL:</label>
     <input type="text" id="youtube-url" placeholder="Enter YouTube URL">
+    
+    <label for="recipient-email">Recipient Email:</label>
+    <input type="email" id="recipient-email" placeholder="Enter Recipient Email">
+    
     <button onclick="startTranscription()">Submit</button>
 
     <div class="results" id="results" style="display: none;">
@@ -68,8 +72,10 @@
 
         async function startTranscription() {
             const youtubeUrl = document.getElementById('youtube-url').value;
-            if (!youtubeUrl) {
-                alert('Please enter a YouTube URL');
+            const recipientEmail = document.getElementById('recipient-email').value;
+            
+            if (!youtubeUrl || !recipientEmail) {
+                alert('Please enter both a YouTube URL and a recipient email');
                 return;
             }
 
@@ -78,7 +84,7 @@
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ youtube_url: youtubeUrl })
+                body: JSON.stringify({ youtube_url: youtubeUrl, recipient_email: recipientEmail })
             });
 
             const data = await response.json();
@@ -93,7 +99,7 @@
 
         function pollForStatus(executionArn) {
             const interval = setInterval(async () => {
-                const response = await fetch(`https://1cu9tnmahh.execute-api.us-east-1.amazonaws.com/prod/check-step-status`, {
+                const response = await fetch(`${apiBaseUrl}/prod/check-step-status`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
