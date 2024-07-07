@@ -88,6 +88,7 @@ def extract_insights(text):
         raise
 
 def lambda_handler(event, context):
+    event=json.loads(event['body'])
     youtube_url = event['youtube_url']
     
     # Download the audio from YouTube
