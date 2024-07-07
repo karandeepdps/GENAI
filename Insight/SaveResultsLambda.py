@@ -17,5 +17,4 @@ def lambda_handler(event, context):
     
     s3_client.put_object(Bucket=os.environ['RESULTS_BUCKET'], Key=f'results/{job_name}.json', Body=json.dumps(final_results))
     
-    return {'status': 'COMPLETED'}
-
+    return {'status': 'COMPLETED','insights':insights,'transcription':transcription,'job_name':job_name}

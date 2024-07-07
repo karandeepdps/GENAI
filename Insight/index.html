@@ -93,7 +93,7 @@
 
         function pollForStatus(executionArn) {
             const interval = setInterval(async () => {
-                const response = await fetch(`https://1cu9tnmahh.execute-api.us-east-1.amazonaws.com/check-step-status`, {
+                const response = await fetch(`https://1cu9tnmahh.execute-api.us-east-1.amazonaws.com/prod/check-step-status`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -103,7 +103,7 @@
 
                 const data = await response.json();
 
-                if (data.status === 'SUCCEEDED') {
+                if (data.status === 'COMPLETED') {
                     clearInterval(interval);
                     displayResults(data);
                 } else if (data.status === 'FAILED' || data.status === 'TIMED_OUT' || data.status === 'ABORTED') {
