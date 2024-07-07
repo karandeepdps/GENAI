@@ -10,7 +10,6 @@ from yt_dlp import YoutubeDL
 transcribe_client = boto3.client('transcribe')
 comprehend_client = boto3.client('comprehend')
 s3_client = boto3.client('s3')
-s3_resource = boto3.resource('s3')
 
 # Set up logging
 logger = logging.getLogger()
@@ -46,6 +45,7 @@ def start_transcription_job(s3_uri, job_name):
             LanguageCode='en-US',
             OutputBucketName=os.environ['TRANSCRIBE_OUTPUT_BUCKET']
         )
+        logger.info(f"Started transcription job: {response}")
         return response
     except Exception as e:
         logger.error(f"Error starting transcription job: {e}")
@@ -62,15 +62,9 @@ def get_transcription_text(job_name):
                 bucket_name = parsed_url.netloc.split('.')[0]
                 object_key = parsed_url.path.lstrip('/')
                 
-                # Generate a signed URL
-                s3_client = boto3.client('s3')
-                signed_url = s3_client.generate_presigned_url(
-                    'get_object',
-                    Params={'Bucket': bucket_name, 'Key': object_key},
-                    ExpiresIn=3600
-                )
-                
-                transcript_json = urllib.request.urlopen(signed_url).read().decode('utf-8')
+                # Retrieve the transcription file directly from S3
+                s3_object = s3_client.get_object(Bucket=bucket_name, Key=object_key)
+                transcript_json = s3_object['Body'].read().decode('utf-8')
                 transcript_data = json.loads(transcript_json)
                 return transcript_data['results']['transcripts'][0]['transcript']
             elif status == 'FAILED':
