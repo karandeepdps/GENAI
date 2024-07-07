@@ -10,7 +10,7 @@ This repository contains a Python-based AWS Lambda function that generates Pytho
 
 ## Architecture
 
-![Architecture](images/arch.png)
+![Architecture](images/arch.webp)
 
 ## Prerequisites
 
