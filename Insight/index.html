@@ -50,7 +50,7 @@
     <h1>Transcription and Insights</h1>
     <label for="youtube-url">YouTube URL:</label>
     <input type="text" id="youtube-url" placeholder="Enter YouTube URL">
-    <button onclick="getTranscriptionAndInsights()">Submit</button>
+    <button onclick="startTranscription()">Submit</button>
 
     <div class="results" id="results" style="display: none;">
         <div class="transcription">
@@ -63,37 +63,73 @@
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/aws-sdk/dist/aws-sdk.min.js"></script>
     <script>
-        async function getTranscriptionAndInsights() {
+        AWS.config.region = 'us-east-1'; // Update to your region
+        AWS.config.credentials = new AWS.CognitoIdentityCredentials({
+            IdentityPoolId: 'us-east-1:07483fed-1e4f-4a2f-bcb7-3e62727e7bbe', // Update to your Cognito Identity Pool ID
+        });
+
+        const startTranscription = async () => {
             const youtubeUrl = document.getElementById('youtube-url').value;
             if (!youtubeUrl) {
                 alert('Please enter a YouTube URL');
                 return;
             }
 
-            const response = await fetch('https://your-api-gateway-endpoint', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ youtube_url: youtubeUrl })
-            });
+            const stepFunctions = new AWS.StepFunctions();
+            const params = {
+                stateMachineArn: 'arn:aws:states:us-east-1:590184144410:stateMachine:MyStateMachine-dm1ayly4p', // Update to your Step Function ARN
+                input: JSON.stringify({ youtube_url: youtubeUrl })
+            };
 
-            if (response.ok) {
-                const data = await response.json();
-                document.getElementById('transcription').innerText = data.transcription;
-                const insightsList = document.getElementById('insights');
-                insightsList.innerHTML = '';
-                data.insights.forEach(phrase => {
-                    const li = document.createElement('li');
-                    li.innerText = phrase.Text;
-                    insightsList.appendChild(li);
+            stepFunctions.startExecution(params, (err, data) => {
+                if (err) {
+                    console.error(err);
+                    alert('Error starting transcription');
+                } else {
+                    alert('Transcription job started. You can check the status and results.');
+                    const executionArn = data.executionArn;
+                    pollForStatus(executionArn);
+                }
+            });
+        };
+
+        const pollForStatus = async (executionArn) => {
+            const stepFunctions = new AWS.StepFunctions();
+            const params = {
+                executionArn: executionArn
+            };
+
+            const interval = setInterval(() => {
+                stepFunctions.describeExecution(params, (err, data) => {
+                    if (err) {
+                        console.error(err);
+                        clearInterval(interval);
+                        alert('Error checking status');
+                    } else if (data.status === 'SUCCEEDED') {
+                        clearInterval(interval);
+                        const output = JSON.parse(data.output);
+                        displayResults(output);
+                    } else if (data.status === 'FAILED' || data.status === 'TIMED_OUT' || data.status === 'ABORTED') {
+                        clearInterval(interval);
+                        alert('Transcription failed');
+                    }
                 });
-                document.getElementById('results').style.display = 'block';
-            } else {
-                alert('Error: ' + response.statusText);
-            }
-        }
+            }, 5000);
+        };
+
+        const displayResults = (data) => {
+            document.getElementById('transcription').innerText = data.transcription;
+            const insightsList = document.getElementById('insights');
+            insightsList.innerHTML = '';
+            data.insights.forEach(phrase => {
+                const li = document.createElement('li');
+                li.innerText = phrase.Text;
+                insightsList.appendChild(li);
+            });
+            document.getElementById('results').style.display = 'block';
+        };
     </script>
 </body>
 </html>
