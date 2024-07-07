@@ -64,7 +64,7 @@
     </div>
 
     <script>
-        const apiBaseUrl = 'https://YOUR_API_GATEWAY_ENDPOINT'; 
+        const apiBaseUrl = 'https://i1bd3tkv94.execute-api.us-east-1.amazonaws.com'; 
 
         async function startTranscription() {
             const youtubeUrl = document.getElementById('youtube-url').value;
@@ -73,7 +73,7 @@
                 return;
             }
 
-            const response = await fetch(`${apiBaseUrl}/start-transcription`, {
+            const response = await fetch(`${apiBaseUrl}/step-Transcription`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -93,7 +93,14 @@
 
         function pollForStatus(executionArn) {
             const interval = setInterval(async () => {
-                const response = await fetch(`${apiBaseUrl}/status/${encodeURIComponent(executionArn)}`);
+                const response = await fetch(`https://1cu9tnmahh.execute-api.us-east-1.amazonaws.com/check-step-status`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ executionArn: executionArn })
+                });
+
                 const data = await response.json();
 
                 if (data.status === 'SUCCEEDED') {
