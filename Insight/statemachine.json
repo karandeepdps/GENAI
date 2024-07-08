@@ -5,7 +5,8 @@
     "StartTranscription": {
       "Type": "Task",
       "Resource": "arn:aws:lambda:us-east-1:590184144410:function:StartTranscriptionLambda",
-      "Next": "WaitForTranscription"
+      "Next": "WaitForTranscription",
+      "ResultPath": "$.transcription"
     },
     "WaitForTranscription": {
       "Type": "Wait",
@@ -15,13 +16,14 @@
     "CheckTranscriptionStatus": {
       "Type": "Task",
       "Resource": "arn:aws:lambda:us-east-1:590184144410:function:CheckTranscriptionStatusLambda",
+      "ResultPath": "$.status",
       "Next": "IsTranscriptionComplete"
     },
     "IsTranscriptionComplete": {
       "Type": "Choice",
       "Choices": [
         {
-          "Variable": "$.status",
+          "Variable": "$.status.status",
           "StringEquals": "COMPLETED",
           "Next": "ExtractInsights"
         }
@@ -31,6 +33,7 @@
     "ExtractInsights": {
       "Type": "Task",
       "Resource": "arn:aws:lambda:us-east-1:590184144410:function:ExtractInsightsLambda",
+      "ResultPath": "$.insights",
       "Next": "SaveResults"
     },
     "SaveResults": {
