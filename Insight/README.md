@@ -5,7 +5,7 @@ This project leverages AWS services to create a serverless workflow for extracti
 
 ## Architecture
 
-![Architecture Diagram](images/architecture_diagram.png)
+![Architecture Diagram](images/transcription_insights_workflow.png)
 
 ## Components
 
